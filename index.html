@@ -1,75 +1,217 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title>Alt Code Character Map</title>
+    <meta name="description" content="A fast, dense, and searchable list of Alt Codes.">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        :root { --accent: #6366f1; }
-        body { background: #0f172a; color: #f8fafc; font-family: 'Inter', sans-serif; }
-        
-        .grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); 
-            gap: 15px; 
-            padding: 20px; 
+        :root {
+            --bg-color: #050505;
+            --surface: rgba(30, 41, 59, 0.5);
+            --surface-hover: rgba(99, 102, 241, 0.2);
+            --border: rgba(255, 255, 255, 0.1);
+            --border-hover: #818cf8;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #6366f1;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            /* Adds a subtle, high-end radial glow to the background */
+            background-image: radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.15), transparent 25%),
+                              radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.15), transparent 25%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            width: 100%;
+            max-width: 1200px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            padding: 15px 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+        }
+
+        h1 { margin: 0; font-size: 1.5rem; font-weight: 600; letter-spacing: -0.5px; }
+
+        input {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 10px 15px;
+            border-radius: 8px;
+            width: 300px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus { border-color: var(--accent); }
+
+        /* Tight, condensed grid setup */
+        .grid-container {
+            width: 100%;
+            max-width: 1200px;
+            display: grid;
+            /* 42px min width means they pack in tight like a native app */
+            grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+            gap: 4px;
         }
 
         .glyph-card {
-            background: #1e293b;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid #334155;
+            width: 42px;
+            height: 42px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
             position: relative;
+            transition: all 0.15s ease-out;
+            user-select: none;
         }
 
-        /* The "Rumble" Pop */
+        .glyph {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            line-height: 1;
+        }
+
+        /* Hover animation: Scale up slightly and glow */
         .glyph-card:hover {
-            transform: translateY(-5px) scale(1.05);
-            border-color: var(--accent);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            transform: scale(1.15);
+            z-index: 10;
+            background: var(--surface-hover);
+            border-color: var(--border-hover);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 0 0 15px rgba(99, 102, 241, 0.4);
         }
 
-        .glyph { font-family: 'Playfair Display', serif; font-size: 2.5rem; display: block; }
-        
-        /* Hidden Alt Code that reveals on hover */
-        .code { 
-            font-size: 0.8rem; 
-            color: var(--accent); 
-            opacity: 0; 
-            transition: opacity 0.2s;
+        /* Alt-code popup using a pseudo-element so it doesn't break the tight layout */
+        .glyph-card::after {
+            content: attr(data-code);
+            position: absolute;
+            bottom: -28px;
+            left: 50%;
+            transform: translateX(-50%) scale(0.9);
+            background: var(--accent);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 4px;
+            opacity: 0;
+            pointer-events: none;
+            white-space: nowrap;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
         }
-        .glyph-card:hover .code { opacity: 1; }
+
+        .glyph-card:hover::after {
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+        }
+
+        /* Toast notification for copying */
+        #toast {
+            position: fixed;
+            bottom: 20px;
+            background: var(--accent);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s;
+            pointer-events: none;
+            z-index: 50;
+        }
+        
+        #toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
 
-    <input type="text" id="searchInput" placeholder="Filter by name or code..." style="margin: 20px;">
+    <div class="header">
+        <h1>Alt Code Symbols</h1>
+        <input type="text" id="searchInput" placeholder="Search code (e.g. 1) or character...">
+    </div>
 
-    <div class="grid" id="container">
-        </div>
+    <div class="grid-container" id="container">
+        <!-- JS will populate these -->
+    </div>
+
+    <div id="toast">Copied to clipboard!</div>
 
     <script>
-        const glyphs = [
-            { name: "Smiley", code: "Alt+0001", char: "☺" },
-            { name: "Solid Smiley", code: "Alt+0002", char: "☻" },
-            // Add your full sequential list here
-        ];
+        // The original Code Page 437 (DOS) character set string.
+        // Index 1 = ☺, Index 2 = ☻, etc. This perfectly maps to Alt+1 through Alt+255.
+        const cp437 = " ☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■ ";
+        
+        let glyphs = [];
+        
+        // Generate the full list from 1 to 255
+        for (let i = 1; i <= 255; i++) {
+            // Some characters (like 7, 8, 9, 10, 13) are control characters (beep, backspace, etc.)
+            // In standard Alt Codes, these often render as invisible or system functions, 
+            // but we'll render the CP437 visual equivalent where possible.
+            glyphs.push({
+                codeNum: i.toString(),
+                codeStr: `Alt+${i}`,
+                char: cp437[i]
+            });
+        }
 
         const container = document.getElementById('container');
+        const toast = document.getElementById('toast');
+        let toastTimeout;
         
         function update(filter = "") {
             container.innerHTML = glyphs
-                .filter(g => g.name.toLowerCase().includes(filter.toLowerCase()) || g.code.includes(filter))
+                .filter(g => g.codeNum.includes(filter) || g.char.includes(filter))
                 .map(g => `
-                    <div class="glyph-card">
+                    <div class="glyph-card" data-code="${g.codeStr}" onclick="copyChar('${g.char}', '${g.codeStr}')">
                         <span class="glyph">${g.char}</span>
-                        <span class="code">${g.code}</span>
                     </div>
                 `).join('');
         }
 
+        // Copy function and Toast notification
+        function copyChar(char, codeStr) {
+            navigator.clipboard.writeText(char).then(() => {
+                toast.innerText = `${char} (${codeStr}) copied!`;
+                toast.classList.add('show');
+                
+                clearTimeout(toastTimeout);
+                toastTimeout = setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 2000);
+            });
+        }
+
+        // Event listener for live search
         document.getElementById('searchInput').addEventListener('input', (e) => update(e.target.value));
+        
+        // Initial render
         update();
     </script>
 </body>
