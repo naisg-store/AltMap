@@ -147,6 +147,33 @@
             opacity: 1;
             transform: translateY(0);
         }
+        .composer-container {
+            width: 100%;
+            max-width: 1200px;
+            margin-top: 25px;
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: center;
+        }
+
+        #compositionBar {
+            width: 100%;
+            max-width: 800px; /* Gives it plenty of room for a sentence */
+            font-size: 1.1rem;
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            color: var(--text-main);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+
+        #compositionBar:focus {
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+            transform: translateY(-2px);
+            outline: none;
+        }
     </style>
 </head>
 <body>
@@ -159,7 +186,11 @@
     <div class="grid-container" id="container">
         <!-- JS will populate these -->
     </div>
-
+    
+    <div class="composer-container">
+        <input type="text" id="compositionBar" placeholder="Type here, click symbols to insert mid-sentence...">
+    </div>
+    
     <div id="toast">Copied to clipboard!</div>
 
     <script>
@@ -197,6 +228,7 @@
 
         // Copy function and Toast notification
         function copyChar(char, codeStr) {
+            // 1. Trigger the clipboard copy and toast notification
             navigator.clipboard.writeText(char).then(() => {
                 toast.innerText = `${char} (${codeStr}) copied!`;
                 toast.classList.add('show');
@@ -206,6 +238,20 @@
                     toast.classList.remove('show');
                 }, 2000);
             });
+
+            // 2. Insert into the composition bar mid-sentence
+            const compBar = document.getElementById('compositionBar');
+            const startPos = compBar.selectionStart;
+            const endPos = compBar.selectionEnd;
+
+            // Slice the text, insert the character, and stitch it back together
+            compBar.value = compBar.value.substring(0, startPos) 
+                          + char 
+                          + compBar.value.substring(endPos, compBar.value.length);
+            
+            // Move cursor immediately after the new character and refocus
+            compBar.selectionStart = compBar.selectionEnd = startPos + 1;
+            compBar.focus();
         }
 
         // Event listener for live search
