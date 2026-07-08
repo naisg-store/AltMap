@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&display=swap" rel="stylesheet">
+    <style>
+        :root { --accent: #6366f1; }
+        body { background: #0f172a; color: #f8fafc; font-family: 'Inter', sans-serif; }
+        
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); 
+            gap: 15px; 
+            padding: 20px; 
+        }
+
+        .glyph-card {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid #334155;
+            position: relative;
+        }
+
+        /* The "Rumble" Pop */
+        .glyph-card:hover {
+            transform: translateY(-5px) scale(1.05);
+            border-color: var(--accent);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+
+        .glyph { font-family: 'Playfair Display', serif; font-size: 2.5rem; display: block; }
+        
+        /* Hidden Alt Code that reveals on hover */
+        .code { 
+            font-size: 0.8rem; 
+            color: var(--accent); 
+            opacity: 0; 
+            transition: opacity 0.2s;
+        }
+        .glyph-card:hover .code { opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <input type="text" id="searchInput" placeholder="Filter by name or code..." style="margin: 20px;">
+
+    <div class="grid" id="container">
+        </div>
+
+    <script>
+        const glyphs = [
+            { name: "Smiley", code: "Alt+0001", char: "☺" },
+            { name: "Solid Smiley", code: "Alt+0002", char: "☻" },
+            // Add your full sequential list here
+        ];
+
+        const container = document.getElementById('container');
+        
+        function update(filter = "") {
+            container.innerHTML = glyphs
+                .filter(g => g.name.toLowerCase().includes(filter.toLowerCase()) || g.code.includes(filter))
+                .map(g => `
+                    <div class="glyph-card">
+                        <span class="glyph">${g.char}</span>
+                        <span class="code">${g.code}</span>
+                    </div>
+                `).join('');
+        }
+
+        document.getElementById('searchInput').addEventListener('input', (e) => update(e.target.value));
+        update();
+    </script>
+</body>
+</html>
